@@ -29,7 +29,7 @@ namespace Day6
                         grid[i, j] = closest.First().x.i;
 
                 }
-            Console.WriteLine();
+            //Console.WriteLine();
             //for (int i = 0; i < grid.GetLength(0); i++)
             //{
             //    for (int j = 0; j < grid.GetLength(1); j++)
@@ -61,6 +61,22 @@ namespace Day6
                 }
             }
             Console.WriteLine(sizes.Where(x => !toignore.Contains(x.Key)).OrderByDescending(x => x.Value).First());
+
+            int within = 0;
+            for (int i = 0; i < grid.GetLength(0); i++)
+                for (int j = 0; j < grid.GetLength(1); j++)
+                {
+                    var closest = points.Select(x => (x, GetMHDistance((i, j), (x.x, x.y)))).OrderBy(x => x.Item2);
+
+                    grid[i, j] = closest.Sum(x => x.Item2);
+                    if (grid[i, j] < 10000)
+                    {
+                        within++;
+                    }
+
+                }
+            Console.WriteLine(within);
+
             Console.WriteLine("done.");
             Console.ReadLine();
         }
