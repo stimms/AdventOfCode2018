@@ -16,27 +16,25 @@ namespace Day9
             int points = Int32.Parse(line.Split(' ')[6]);
             
 
-            var playerScore = new int[numPlayers];
-            var circle = new List<int>();
-            circle.Insert(0, 0);
-            circle.Insert(1, 1);
+            var playerScore = new long[numPlayers];
+            var circle = new LinkedList<int>();
+            circle.AddFirst(0);
+            circle.AddLast(1);
             int round = 2;
-            int current = 1;
+            var current = circle.Find(1);
             while (round < points)
             {
                 if (round % 23 == 0)
                 {
-                    int toRemove =  loopRemainder((current - 7), circle.Count);
-                    playerScore[round % numPlayers] += round + circle[toRemove];
-                    circle.RemoveAt(toRemove);
-                    current = toRemove % circle.Count;
+                    var toRemove =  get7back(current, circle);
+                    playerScore[round % numPlayers] += round + toRemove.Value;
+                    
+                    current = toRemove.Next;
+                    circle.Remove(toRemove);
                 }
                 else
                 {
-                    var location = (current + 2) % (circle.Count);
-                    circle.Insert(location, round);
-                    current = location;
-                    
+                    current = circle.AddAfter(current.Next ?? circle.First, round);
                 }
                 round++;
             }
@@ -47,6 +45,20 @@ namespace Day9
             Console.ReadLine();
         }
 
+        static LinkedListNode<int> get7back(LinkedListNode<int> current, LinkedList<int> list)
+        {
+            int counter = 0;
+            while(counter < 7)
+            {
+                current = current.Previous;
+                if(current == null)
+                {
+                    current = list.Last;
+                }
+                counter++;
+            }
+            return current;
+        }
         static int loopRemainder(int index, int loopSize)
         {
             var remainder = index % loopSize;
