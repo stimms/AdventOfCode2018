@@ -4,6 +4,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 
 namespace Day10
@@ -75,8 +76,9 @@ namespace Day10
             var points = new List<Point>();
             foreach (var line in lines)
             {
-                var (x, y) = line.Split('<').Skip(1).First().Split(',', '>');
-                var (velX, velY) = line.Split('<').Skip(2).First().Split(',', '>');
+                var match = Regex.Match(line, @".*<(\s?-?\d+),\s+(-?\d+).*<(\s?-?\d+),\s+(-?\d+)");
+                var (x, y, velX, velY) = match.Groups.Skip(1).Select(p=>p.Value.Trim()).ToList();
+                
                 points.Add(new Point
                 {
                     X = Int32.Parse(x),
