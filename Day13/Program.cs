@@ -18,163 +18,138 @@ namespace Day13
             while (!found)
             {
                 counter++;
-                int lineCounter = 0;
-                foreach (var line in lines)
+                for (int y = 0; y < trackSegmetns.GetLength(0); y++)
                 {
-
-                    int charCounter = 0;
-                    foreach (var c in line)
+                    for (int x = 0; x < trackSegmetns.GetLength(1); x++)
                     {
-                        var current = trackSegmetns[charCounter, lineCounter];
-                        if (current.type != TrackType.Empty && current.carts.Where(x => x.lastMove != counter).Count() > 0)
+                        var current = trackSegmetns[x, y];
+                        if (current.type != TrackType.Empty && current.carts.Where(c => c.lastMove != counter).Count() > 0)
                         {
-                            if (current.type == TrackType.Intersection)
-                            {
-                                var (a, b) = GetDirectionAfterIntersection(current.carts.First().direction, current.carts.First().nextIntersection);
-                                current.carts.Insert(1, (a, counter, b));
-                                current.carts.RemoveAt(0);
-                            }
-
-                            if (current.type == TrackType.UpToLeftTransition)
-                            {
-                                if (current.carts.First().direction == CartDirection.Right)
-                                {
-                                    current.carts.Insert(1, (CartDirection.Down, counter, current.carts.First().nextIntersection));
-                                    current.carts.RemoveAt(0);
-                                }
-                                else if (current.carts.First().direction == CartDirection.Left)
-                                {
-
-                                    current.carts.Insert(1, (CartDirection.Up, counter, current.carts.First().nextIntersection));
-                                    current.carts.RemoveAt(0);
-                                }
-                                else if (current.carts.First().direction == CartDirection.Down)
-                                {
-
-                                    current.carts.Insert(1, (CartDirection.Right, counter, current.carts.First().nextIntersection));
-                                    current.carts.RemoveAt(0);
-                                }
-                                else if (current.carts.First().direction == CartDirection.Up)
-                                {
-
-                                    current.carts.Insert(1, (CartDirection.Left, counter, current.carts.First().nextIntersection));
-                                    current.carts.RemoveAt(0);
-                                }
-                            }
-                            else if (current.type == TrackType.UpToRightTransition)
-                            {
-                                if (current.carts.First().direction == CartDirection.Right)
-                                {
-
-                                    current.carts.Insert(1, (CartDirection.Up, counter, current.carts.First().nextIntersection));
-                                    current.carts.RemoveAt(0);
-                                }
-                                else if (current.carts.First().direction == CartDirection.Left)
-                                {
-
-                                    current.carts.Insert(1, (CartDirection.Down, counter, current.carts.First().nextIntersection));
-                                    current.carts.RemoveAt(0);
-                                }
-                                else if (current.carts.First().direction == CartDirection.Down)
-                                {
-
-                                    current.carts.Insert(1, (CartDirection.Left, counter, current.carts.First().nextIntersection));
-                                    current.carts.RemoveAt(0);
-                                }
-                                else if (current.carts.First().direction == CartDirection.Up)
-                                {
-
-                                    current.carts.Insert(1, (CartDirection.Right, counter, current.carts.First().nextIntersection));
-                                    current.carts.RemoveAt(0);
-                                }
-                            }
-
-                            if (current.carts.First().direction == CartDirection.Left)
-                            {
-                                
-                                trackSegmetns[charCounter - 1, lineCounter].carts.Add((CartDirection.Left, counter, current.carts.First().nextIntersection));
-                                current.carts.RemoveAt(0);
-                            }
-                            else if (current.carts.First().direction == CartDirection.Right)
-                            {
-                                
-                                trackSegmetns[charCounter + 1, lineCounter].carts.Add((CartDirection.Right, counter, current.carts.First().nextIntersection));
-                                current.carts.RemoveAt(0);
-                            }
-                            else if (current.carts.First().direction == CartDirection.Up)
-                            {
-                                
-                                trackSegmetns[charCounter, lineCounter - 1].carts.Add((CartDirection.Up, counter, current.carts.First().nextIntersection));
-                                current.carts.RemoveAt(0);
-                            }
-                            else if (current.carts.First().direction == CartDirection.Down)
-                            {
-                                
-                                trackSegmetns[charCounter, lineCounter + 1].carts.Add((CartDirection.Down, counter, current.carts.First().nextIntersection));
-                                current.carts.RemoveAt(0);
-                            }
+                            HandleIntersection(counter, current);
+                            HandleCorners(counter, current);
+                            MoveCart(trackSegmetns, counter, y, x, current);
 
                             var cartCounter = 0;
-                            var lineCounter1 = 0;
-                            foreach (var l in lines)
+                            cartCounter = TestForCollissions(trackSegmetns, cartCounter);
+                            if (cartCounter == 1)
                             {
-                                int charCounter1 = 0;
-                                foreach (var c1 in line)
+                                for (int y1 = 0; y1 < trackSegmetns.GetLength(0); y1++)
                                 {
-                                    
-                                    if (trackSegmetns[charCounter1, lineCounter1].carts.Count > 1)
+                                    for (int x1 = 0; x1 < trackSegmetns.GetLength(1); x1++)
                                     {
-                                        Console.WriteLine($"<<<BASH>>> {charCounter1}, {lineCounter1}");
-                                        trackSegmetns[charCounter1, lineCounter1].carts.Clear();
-                                        
-                                        break;
-                                    }
-                                    if (trackSegmetns[charCounter1, lineCounter1].carts.Count > 0)
-                                    {
-                                        //Console.WriteLine($"{charCounter1}, {lineCounter1}");
-                                        cartCounter++;
-                                    }
-                                    charCounter1++;
-                                }
-                                lineCounter1++;
-                            }
-                            if(cartCounter == 1)
-                            {
-                                lineCounter1 = 0;
-                                foreach (var l in lines)
-                                {
-                                    int charCounter1 = 0;
-                                    foreach (var c1 in line)
-                                    {
-                                        if (trackSegmetns[charCounter1, lineCounter1].carts.Count > 0)
+                                        if (trackSegmetns[x1, y1].carts.Count > 0)
                                         {
-                                            Console.WriteLine($"Final cart {charCounter1}, {lineCounter1}");
+                                            Console.WriteLine($"Final cart {x1}, {y1}");
                                             cartCounter++;
                                             found = true;
                                         }
-                                        charCounter1++;
                                     }
-                                    lineCounter1++;
                                 }
                             }
-
-
                         }
-                        charCounter++;
                     }
-                    lineCounter++;
                 }
-
-                
-                //Console.WriteLine();
-
-                //break;
             }
-
-
-            //Console.WriteLine(sum);
             Console.WriteLine("done.");
             Console.ReadLine();
+        }
+
+        private static int TestForCollissions((TrackType type, List<(CartDirection direction, int lastMove, CartDirection nextIntersection)> carts)[,] trackSegmetns, int cartCounter)
+        {
+            for (int y1 = 0; y1 < trackSegmetns.GetLength(0); y1++)
+            {
+                for (int x1 = 0; x1 < trackSegmetns.GetLength(1); x1++)
+                {
+                    if (trackSegmetns[x1, y1].carts.Count > 1)
+                    {
+                        Console.WriteLine($"<<<BASH>>> {x1}, {y1}");
+                        trackSegmetns[x1, y1].carts.Clear();
+
+                        break;
+                    }
+                    if (trackSegmetns[x1, y1].carts.Count > 0)
+                    {
+                        cartCounter++;
+                    }
+                }
+            }
+
+            return cartCounter;
+        }
+
+        private static void MoveCart((TrackType type, List<(CartDirection direction, int lastMove, CartDirection nextIntersection)> carts)[,] trackSegmetns, int counter, int y, int x, (TrackType type, List<(CartDirection direction, int lastMove, CartDirection nextIntersection)> carts) current)
+        {
+            if (current.carts.First().direction == CartDirection.Left)
+            {
+                trackSegmetns[x - 1, y].carts.Add((CartDirection.Left, counter, current.carts.First().nextIntersection));
+            }
+            else if (current.carts.First().direction == CartDirection.Right)
+            {
+                trackSegmetns[x + 1, y].carts.Add((CartDirection.Right, counter, current.carts.First().nextIntersection));
+            }
+            else if (current.carts.First().direction == CartDirection.Up)
+            {
+                trackSegmetns[x, y - 1].carts.Add((CartDirection.Up, counter, current.carts.First().nextIntersection));
+            }
+            else if (current.carts.First().direction == CartDirection.Down)
+            {
+                trackSegmetns[x, y + 1].carts.Add((CartDirection.Down, counter, current.carts.First().nextIntersection));
+            }
+            current.carts.RemoveAt(0);
+        }
+
+        private static void HandleCorners(int counter, (TrackType type, List<(CartDirection direction, int lastMove, CartDirection nextIntersection)> carts) current)
+        {
+            if (current.type == TrackType.UpToLeftTransition)
+            {
+                if (current.carts.First().direction == CartDirection.Right)
+                {
+                    current.carts.Insert(1, (CartDirection.Down, counter, current.carts.First().nextIntersection));
+                }
+                else if (current.carts.First().direction == CartDirection.Left)
+                {
+                    current.carts.Insert(1, (CartDirection.Up, counter, current.carts.First().nextIntersection));
+                }
+                else if (current.carts.First().direction == CartDirection.Down)
+                {
+                    current.carts.Insert(1, (CartDirection.Right, counter, current.carts.First().nextIntersection));
+                }
+                else if (current.carts.First().direction == CartDirection.Up)
+                {
+                    current.carts.Insert(1, (CartDirection.Left, counter, current.carts.First().nextIntersection));
+                }
+                current.carts.RemoveAt(0);
+            }
+            else if (current.type == TrackType.UpToRightTransition)
+            {
+                if (current.carts.First().direction == CartDirection.Right)
+                {
+                    current.carts.Insert(1, (CartDirection.Up, counter, current.carts.First().nextIntersection));
+                }
+                else if (current.carts.First().direction == CartDirection.Left)
+                {
+                    current.carts.Insert(1, (CartDirection.Down, counter, current.carts.First().nextIntersection));
+                }
+                else if (current.carts.First().direction == CartDirection.Down)
+                {
+                    current.carts.Insert(1, (CartDirection.Left, counter, current.carts.First().nextIntersection));
+                }
+                else if (current.carts.First().direction == CartDirection.Up)
+                {
+                    current.carts.Insert(1, (CartDirection.Right, counter, current.carts.First().nextIntersection));
+                }
+                current.carts.RemoveAt(0);
+            }
+        }
+
+        private static void HandleIntersection(int counter, (TrackType type, List<(CartDirection direction, int lastMove, CartDirection nextIntersection)> carts) current)
+        {
+            if (current.type == TrackType.Intersection)
+            {
+                var (a, b) = GetDirectionAfterIntersection(current.carts.First().direction, current.carts.First().nextIntersection);
+                current.carts.Insert(1, (a, counter, b));
+                current.carts.RemoveAt(0);
+            }
         }
 
         private static int BuildTrack(string[] lines, (TrackType type, List<(CartDirection, int, CartDirection)> carts)[,] trackSegmetns)
@@ -306,7 +281,6 @@ namespace Day13
                     nextDirection = CartDirection.Down;
                 }
             }
-
             return (nextDirection, nextTurn);
         }
     }
@@ -329,6 +303,4 @@ namespace Day13
         Right,
         Straight
     }
-
-
 }
