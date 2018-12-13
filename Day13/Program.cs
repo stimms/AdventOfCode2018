@@ -10,34 +10,34 @@ namespace Day13
         static void Main(string[] args)
         {
             var lines = File.ReadAllLines("input.txt");
-            var trackSegmetns = new(TrackType type, List<(CartDirection direction, int lastMove, CartDirection nextIntersection)> carts)[lines.First().Length, lines.Count()];
+            var trackSegments = new(TrackType type, List<(CartDirection direction, int lastMove, CartDirection nextIntersection)> carts)[lines.First().Length, lines.Count()];
 
-            BuildTrack(lines, trackSegmetns);
+            BuildTrack(lines, trackSegments);
             var found = false;
             var counter = 0;
             while (!found)
             {
                 counter++;
-                for (int y = 0; y < trackSegmetns.GetLength(0); y++)
+                for (int y = 0; y < trackSegments.GetLength(0); y++)
                 {
-                    for (int x = 0; x < trackSegmetns.GetLength(1); x++)
+                    for (int x = 0; x < trackSegments.GetLength(1); x++)
                     {
-                        var current = trackSegmetns[x, y];
-                        if (current.type != TrackType.Empty && current.carts.Where(c => c.lastMove != counter).Count() > 0)
+                        var current = trackSegments[x, y];
+                        if (current.type != TrackType.Empty && AreUnmovedCarts(counter, current) > 0)
                         {
                             HandleIntersection(counter, current);
                             HandleCorners(counter, current);
-                            MoveCart(trackSegmetns, counter, y, x, current);
+                            MoveCart(trackSegments, counter, y, x, current);
 
                             var cartCounter = 0;
-                            cartCounter = TestForCollissions(trackSegmetns, cartCounter);
+                            cartCounter = TestForCollisions(trackSegments, cartCounter);
                             if (cartCounter == 1)
                             {
-                                for (int y1 = 0; y1 < trackSegmetns.GetLength(0); y1++)
+                                for (int y1 = 0; y1 < trackSegments.GetLength(0); y1++)
                                 {
-                                    for (int x1 = 0; x1 < trackSegmetns.GetLength(1); x1++)
+                                    for (int x1 = 0; x1 < trackSegments.GetLength(1); x1++)
                                     {
-                                        if (trackSegmetns[x1, y1].carts.Count > 0)
+                                        if (trackSegments[x1, y1].carts.Count > 0)
                                         {
                                             Console.WriteLine($"Final cart {x1}, {y1}");
                                             cartCounter++;
@@ -54,20 +54,25 @@ namespace Day13
             Console.ReadLine();
         }
 
-        private static int TestForCollissions((TrackType type, List<(CartDirection direction, int lastMove, CartDirection nextIntersection)> carts)[,] trackSegmetns, int cartCounter)
+        private static int AreUnmovedCarts(int counter, (TrackType type, List<(CartDirection direction, int lastMove, CartDirection nextIntersection)> carts) current)
         {
-            for (int y1 = 0; y1 < trackSegmetns.GetLength(0); y1++)
+            return current.carts.Where(c => c.lastMove != counter).Count();
+        }
+
+        private static int TestForCollisions((TrackType type, List<(CartDirection direction, int lastMove, CartDirection nextIntersection)> carts)[,] trackSegments, int cartCounter)
+        {
+            for (int y1 = 0; y1 < trackSegments.GetLength(0); y1++)
             {
-                for (int x1 = 0; x1 < trackSegmetns.GetLength(1); x1++)
+                for (int x1 = 0; x1 < trackSegments.GetLength(1); x1++)
                 {
-                    if (trackSegmetns[x1, y1].carts.Count > 1)
+                    if (trackSegments[x1, y1].carts.Count > 1)
                     {
                         Console.WriteLine($"<<<BASH>>> {x1}, {y1}");
-                        trackSegmetns[x1, y1].carts.Clear();
+                        trackSegments[x1, y1].carts.Clear();
 
                         break;
                     }
-                    if (trackSegmetns[x1, y1].carts.Count > 0)
+                    if (trackSegments[x1, y1].carts.Count > 0)
                     {
                         cartCounter++;
                     }
@@ -77,23 +82,23 @@ namespace Day13
             return cartCounter;
         }
 
-        private static void MoveCart((TrackType type, List<(CartDirection direction, int lastMove, CartDirection nextIntersection)> carts)[,] trackSegmetns, int counter, int y, int x, (TrackType type, List<(CartDirection direction, int lastMove, CartDirection nextIntersection)> carts) current)
+        private static void MoveCart((TrackType type, List<(CartDirection direction, int lastMove, CartDirection nextIntersection)> carts)[,] trackSegments, int counter, int y, int x, (TrackType type, List<(CartDirection direction, int lastMove, CartDirection nextIntersection)> carts) current)
         {
             if (current.carts.First().direction == CartDirection.Left)
             {
-                trackSegmetns[x - 1, y].carts.Add((CartDirection.Left, counter, current.carts.First().nextIntersection));
+                trackSegments[x - 1, y].carts.Add((CartDirection.Left, counter, current.carts.First().nextIntersection));
             }
             else if (current.carts.First().direction == CartDirection.Right)
             {
-                trackSegmetns[x + 1, y].carts.Add((CartDirection.Right, counter, current.carts.First().nextIntersection));
+                trackSegments[x + 1, y].carts.Add((CartDirection.Right, counter, current.carts.First().nextIntersection));
             }
             else if (current.carts.First().direction == CartDirection.Up)
             {
-                trackSegmetns[x, y - 1].carts.Add((CartDirection.Up, counter, current.carts.First().nextIntersection));
+                trackSegments[x, y - 1].carts.Add((CartDirection.Up, counter, current.carts.First().nextIntersection));
             }
             else if (current.carts.First().direction == CartDirection.Down)
             {
-                trackSegmetns[x, y + 1].carts.Add((CartDirection.Down, counter, current.carts.First().nextIntersection));
+                trackSegments[x, y + 1].carts.Add((CartDirection.Down, counter, current.carts.First().nextIntersection));
             }
             current.carts.RemoveAt(0);
         }
@@ -152,7 +157,7 @@ namespace Day13
             }
         }
 
-        private static int BuildTrack(string[] lines, (TrackType type, List<(CartDirection, int, CartDirection)> carts)[,] trackSegmetns)
+        private static int BuildTrack(string[] lines, (TrackType type, List<(CartDirection, int, CartDirection)> carts)[,] trackSegments)
         {
             int lineCounter = 0;
             foreach (var line in lines)
@@ -163,34 +168,34 @@ namespace Day13
                     switch (c)
                     {
                         case '-':
-                            trackSegmetns[charCounter, lineCounter] = (TrackType.Horizontal, new List<(CartDirection, int, CartDirection)> { });
+                            trackSegments[charCounter, lineCounter] = (TrackType.Horizontal, new List<(CartDirection, int, CartDirection)> { });
                             break;
                         case '|':
-                            trackSegmetns[charCounter, lineCounter] = (TrackType.Vertical, new List<(CartDirection, int, CartDirection)> { });
+                            trackSegments[charCounter, lineCounter] = (TrackType.Vertical, new List<(CartDirection, int, CartDirection)> { });
                             break;
                         case '\\':
-                            trackSegmetns[charCounter, lineCounter] = (TrackType.UpToLeftTransition, new List<(CartDirection, int, CartDirection)> { });
+                            trackSegments[charCounter, lineCounter] = (TrackType.UpToLeftTransition, new List<(CartDirection, int, CartDirection)> { });
                             break;
                         case '/':
-                            trackSegmetns[charCounter, lineCounter] = (TrackType.UpToRightTransition, new List<(CartDirection, int, CartDirection)> { });
+                            trackSegments[charCounter, lineCounter] = (TrackType.UpToRightTransition, new List<(CartDirection, int, CartDirection)> { });
                             break;
                         case '+':
-                            trackSegmetns[charCounter, lineCounter] = (TrackType.Intersection, new List<(CartDirection, int, CartDirection)> { });
+                            trackSegments[charCounter, lineCounter] = (TrackType.Intersection, new List<(CartDirection, int, CartDirection)> { });
                             break;
                         case '>':
-                            trackSegmetns[charCounter, lineCounter] = (TrackType.Horizontal, new List<(CartDirection, int, CartDirection)> { (CartDirection.Right, 0, CartDirection.Left) });
+                            trackSegments[charCounter, lineCounter] = (TrackType.Horizontal, new List<(CartDirection, int, CartDirection)> { (CartDirection.Right, 0, CartDirection.Left) });
                             break;
                         case '<':
-                            trackSegmetns[charCounter, lineCounter] = (TrackType.Horizontal, new List<(CartDirection, int, CartDirection)> { (CartDirection.Left, 0, CartDirection.Left) });
+                            trackSegments[charCounter, lineCounter] = (TrackType.Horizontal, new List<(CartDirection, int, CartDirection)> { (CartDirection.Left, 0, CartDirection.Left) });
                             break;
                         case '^':
-                            trackSegmetns[charCounter, lineCounter] = (TrackType.Vertical, new List<(CartDirection, int, CartDirection)> { (CartDirection.Up, 0, CartDirection.Left) });
+                            trackSegments[charCounter, lineCounter] = (TrackType.Vertical, new List<(CartDirection, int, CartDirection)> { (CartDirection.Up, 0, CartDirection.Left) });
                             break;
                         case 'v':
-                            trackSegmetns[charCounter, lineCounter] = (TrackType.Horizontal, new List<(CartDirection, int, CartDirection)> { (CartDirection.Down, 0, CartDirection.Left) });
+                            trackSegments[charCounter, lineCounter] = (TrackType.Horizontal, new List<(CartDirection, int, CartDirection)> { (CartDirection.Down, 0, CartDirection.Left) });
                             break;
                         default:
-                            trackSegmetns[charCounter, lineCounter] = (TrackType.Empty, new List<(CartDirection, int, CartDirection)> { });
+                            trackSegments[charCounter, lineCounter] = (TrackType.Empty, new List<(CartDirection, int, CartDirection)> { });
                             break;
                     }
                     charCounter++;
