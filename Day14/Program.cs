@@ -22,19 +22,9 @@ namespace Day14
             var elves = new List<int> { 0, 1 };
             for (int i = 0; (scores.Count - 2) / 2 < input + 10; i++)
             {
-                var newScore = scores[elves[0]] + scores[elves[1]];
-                if (newScore >= 10)
-                    scores.Add(1);
-                scores.Add(newScore % 10);
-
-
-                elves[0] = (elves[0] + (1 + scores[elves[0]])) % scores.Count;
-                elves[1] = (elves[1] + (1 + scores[elves[1]])) % scores.Count;
-                if (elves[0] == elves[1])
-                    elves[1]++;
-
+                Compete(scores, elves);
             }
-            var next = string.Join(' ', scores.Skip(input).Take(10)).Replace(" ", "");
+            var next = scores.Skip(input).Take(10).JoinArrayToString();
             Console.WriteLine(next);
         }
         private static void Part2()
@@ -46,20 +36,11 @@ namespace Day14
             var elves = new List<int> { 0, 1 };
             while (true)
             {
-                var newScore = scores[elves[0]] + scores[elves[1]];
-                if (newScore >= 10)
-                    scores.Add(1);
-                scores.Add(newScore % 10);
-
-
-                elves[0] = (elves[0] + (1 + scores[elves[0]])) % scores.Count;
-                elves[1] = (elves[1] + (1 + scores[elves[1]])) % scores.Count;
-                if (elves[0] == elves[1])
-                    elves[1]++;
+                int newScore = Compete(scores, elves);
 
                 if (newScore % 10 <= lastDigit)
                 {
-                    var all = string.Join(' ', scores.Skip(scores.Count() - (input.Count() + 1))).Replace(" ", "");
+                    var all = scores.Skip(scores.Count() - (input.Count() + 1)).JoinArrayToString();
                     if (all.Contains(input))
                     {
                         Console.WriteLine(scores.LongCount() - input.Count() - (all.IndexOf(input) == 0 ? 1 : 0));
@@ -67,6 +48,20 @@ namespace Day14
                     }
                 }
             }
+        }
+
+        private static int Compete(List<int> scores, List<int> elves)
+        {
+            var newScore = scores[elves[0]] + scores[elves[1]];
+            if (newScore >= 10)
+                scores.Add(1);
+            scores.Add(newScore % 10);
+
+            elves[0] = (elves[0] + (1 + scores[elves[0]])) % scores.Count;
+            elves[1] = (elves[1] + (1 + scores[elves[1]])) % scores.Count;
+            if (elves[0] == elves[1])
+                elves[1]++;
+            return newScore;
         }
     }
 }

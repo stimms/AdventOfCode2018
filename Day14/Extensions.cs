@@ -6,6 +6,10 @@ namespace Day14
 {
     public static class Extensions
     {
+        public static string JoinArrayToString(this IEnumerable<int> elements)
+        {
+            return elements.Select(x => x.ToString()).Aggregate((i, j) => $"{i}{j}");
+        }
         public static LinkedListNode<int> GetNBack(LinkedListNode<int> current, LinkedList<int> list, int n)
         {
             int counter = 0;
