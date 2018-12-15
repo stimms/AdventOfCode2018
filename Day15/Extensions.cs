@@ -31,7 +31,7 @@ namespace Day15
             {
                 for (int j = starty; j < toPrint.GetLength(1); j++)
                 {
-                    Console.Write(toPrint[i, j]);
+                    Console.Write(toPrint[i, j] + "\t");
                 }
                 Console.WriteLine();
             }

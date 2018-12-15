@@ -27,12 +27,12 @@ namespace Day15
             var incomplete = true;
             while (incomplete)
             {
-                
-                
+
+
                 var movedList = new List<(int, int)>();
-                for (int x = 0; x < map.GetLength(0); x++)
+                for (int y = 0; y < map.GetLength(1); y++)
                 {
-                    for (int y = 0; y < map.GetLength(1); y++)
+                    for (int x = 0; x < map.GetLength(0); x++)
                     {
                         var updatedx = x;
                         var updatedy = y;
@@ -48,29 +48,66 @@ namespace Day15
 
                                 var visited = new List<(int, int)>();
                                 var toVisit = new List<(int x, int y, List<(int, int)> steps)>();
-                                toVisit.AddRange(GetToVisit(map, x, y, new List<(int, int)>()));
-
+                                List<(int, int)> baddies = GetAllUnitsOfType(map, current.UnitType == UnitType.Elf ? UnitType.Goblin : UnitType.Elf);
+                                foreach (var baddy in baddies)
+                                {
+                                    toVisit.AddRange(GetToVisit(map, baddy.Item1, baddy.Item2, new List<(int, int)>()));
+                                }
+                                var scores = new int[map.GetLength(0), map.GetLength(1)];
+                                for (int o = 0; o < scores.GetLength(0); o++)
+                                    for (int p = 0; p < scores.GetLength(1); p++)
+                                        scores[o, p] = map.GetLength(0) + map.GetLength(1);
                                 for (int i = 0; i < toVisit.Count; i++)
                                 {
                                     var checkingSquare = map[toVisit[i].x, toVisit[i].y];
+                                    if (checkingSquare is Space)
+                                    {
 
-                                    visited.Add((toVisit[i].x, toVisit[i].y));
-                                    if (checkingSquare is Unit && ((Unit)checkingSquare).UnitType != current.UnitType && toVisit[i].steps.Count > 0)
-                                    {
-                                        (int, int) newSquare = toVisit[i].steps.First();
-                                        map[newSquare.Item1, newSquare.Item2] = current;
-                                        map[x, y] = new Space();
-                                        movedList.Add((newSquare.Item1, newSquare.Item2));
-                                        updatedx = newSquare.Item1;
-                                        updatedy = newSquare.Item2;
-                                        break;
-                                    }
-                                    else if (checkingSquare is Space)
-                                    {
-                                        toVisit.AddRange(GetToVisit(map, toVisit[i].x, toVisit[i].y, toVisit[i].steps).Where(s => !visited.Contains((s.x, s.y))));
+                                        visited.Add((toVisit[i].x, toVisit[i].y));
+
+                                        scores[toVisit[i].x, toVisit[i].y] = Math.Min(toVisit[i].steps.Count, scores[toVisit[i].x, toVisit[i].y]);
+
+
+
+
+                                        toVisit.AddRange(GetToVisit(map, toVisit[i].x, toVisit[i].y, toVisit[i].steps).Where(s => !toVisit.Any(t => t.x == s.x && t.y == s.y) && !visited.Contains((s.x, s.y))));
                                     }
                                 }
+                                var candidates = new List<int> { scores[x, y - 1], scores[x - 1, y], scores[x + 1, y], scores[x, y + 1] };
+                                if (candidates.Any(c => c < map.GetLength(0) + map.GetLength(1)))
+                                {
+                                    var moveTo = candidates.IndexOf(candidates.Min());
+                                    if (moveTo == 0)
+                                    {
+                                        map[x, y - 1] = current;
+                                        movedList.Add((x, y - 1));
+                                        updatedy = y - 1;
+                                    }
+                                    else if (moveTo == 1)
+                                    {
+                                        map[x - 1, y] = current;
+                                        movedList.Add((x - 1, y));
+                                        updatedx = x - 1;
+                                    }
+                                    else if (moveTo == 2)
+                                    {
+                                        map[x + 1, y] = current;
+                                        movedList.Add((x + 1, y));
+                                        updatedx = x + 1;
+                                    }
+                                    else if (moveTo == 3)
+                                    {
+                                        map[x, y + 1] = current;
+                                        movedList.Add((x, y + 1));
+                                        updatedy = y + 1;
+                                    }
+                                    map[x, y] = new Space();
+                                }
+                                Console.WriteLine($"({x},{y}) -> ({updatedx},{updatedy})");
+                                //scores.Print2DArray();
 
+
+                                //Print2DArray(map);
                             }
                             neighbors = (new List<ISquare>() { map[updatedx, updatedy - 1], map[updatedx - 1, updatedy], map[updatedx + 1, updatedy], map[updatedx, updatedy + 1] }).OfType<Unit>().Where(z => z.UnitType != current.UnitType);
                             if (neighbors.Any())
@@ -78,25 +115,41 @@ namespace Day15
                                 ExecuteCombat(map, updatedx, updatedy, neighbors);
                             }
 
-                            
+
 
                         }
                     }
                 }
 
-                Console.WriteLine("Round: " + round);
-                Print2DArray(map);
+                //Console.WriteLine(AllHPs(map));
+                //Console.WriteLine("Round: " + round);
+                //Print2DArray(map);
                 if (AreNoOpponents(map))
                 {
                     Console.WriteLine(round * AllHPs(map));
                     incomplete = false;
-
+                    Print2DArray(map);
                 }
                 round++;
-                
+
             }
             Console.WriteLine("done.");
             Console.ReadLine();
+        }
+        static List<(int, int)> GetAllUnitsOfType(ISquare[,] map, UnitType type)
+        {
+            var all = new List<(int, int)>();
+            for (int x = 0; x < map.GetLength(0); x++)
+            {
+                for (int y = 0; y < map.GetLength(1); y++)
+                {
+                    if (map[x, y] is Unit && ((Unit)map[x, y]).UnitType == type)
+                    {
+                        all.Add((x, y));
+                    }
+                }
+            }
+            return all;
         }
         static bool AreNoOpponents(ISquare[,] map)
         {
@@ -115,7 +168,7 @@ namespace Day15
                     }
                 }
             }
-            return elves == 0 || goblins ==0;
+            return elves == 0 || goblins == 0;
         }
         static int AllHPs(ISquare[,] map)
         {
@@ -124,7 +177,7 @@ namespace Day15
             {
                 for (int y = 0; y < map.GetLength(1); y++)
                 {
-                    if(map[x,y] is Unit)
+                    if (map[x, y] is Unit)
                     {
                         total += ((Unit)map[x, y]).HP;
                     }
@@ -136,25 +189,24 @@ namespace Day15
         private static void ExecuteCombat(ISquare[,] map, int x, int y, IEnumerable<Unit> neighbors)
         {
             neighbors.OrderBy(u => u.HP).First().HP -= 3;
-            if (neighbors.OrderBy(u => u.HP).First().HP <= 0)
+
+            if (map[x, y - 1] is Unit && ((Unit)map[x, y - 1]).HP < 0)
             {
-                if (map[x, y - 1] is Unit && ((Unit)map[x, y - 1]).HP < 0)
-                {
-                    map[x, y - 1] = new Space();
-                }
-                if (map[x - 1, y] is Unit && ((Unit)map[x - 1, y]).HP < 0)
-                {
-                    map[x - 1, y] = new Space();
-                }
-                if (map[x + 1, y] is Unit && ((Unit)map[x + 1, y]).HP < 0)
-                {
-                    map[x + 1, y] = new Space();
-                }
-                if (map[x, y + 1] is Unit && ((Unit)map[x, y + 1]).HP < 0)
-                {
-                    map[x, y + 1] = new Space();
-                }
+                map[x, y - 1] = new Space();
             }
+            if (map[x - 1, y] is Unit && ((Unit)map[x - 1, y]).HP < 0)
+            {
+                map[x - 1, y] = new Space();
+            }
+            if (map[x + 1, y] is Unit && ((Unit)map[x + 1, y]).HP < 0)
+            {
+                map[x + 1, y] = new Space();
+            }
+            if (map[x, y + 1] is Unit && ((Unit)map[x, y + 1]).HP < 0)
+            {
+                map[x, y + 1] = new Space();
+            }
+
         }
 
         static IEnumerable<(int x, int y, List<(int, int)> steps)> GetToVisit(ISquare[,] square, int x, int y, List<(int, int)> steps)
@@ -188,10 +240,10 @@ namespace Day15
 
         public static void Print2DArray(ISquare[,] toPrint)
         {
-            for (int i = 0; i < toPrint.GetLength(0); i++)
+            for (int i = 0; i < toPrint.GetLength(1); i++)
             {
                 var scores = new List<int>();
-                for (int j = 0; j < toPrint.GetLength(1); j++)
+                for (int j = 0; j < toPrint.GetLength(0); j++)
                 {
                     Console.Write(toPrint[j, i]);
                     if (toPrint[j, i] is Unit)
