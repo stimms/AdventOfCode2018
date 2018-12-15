@@ -29,7 +29,7 @@ namespace Day14
         }
         private static void Part2()
         {
-            var input = "598701";
+            var input = "793061";
             int lastDigit = Int32.Parse(input.Last().ToString());
 
             var scores = new List<int> { 3, 7 };
@@ -38,12 +38,12 @@ namespace Day14
             {
                 int newScore = Compete(scores, elves);
 
-                if (newScore % 10 <= lastDigit)
+                if (newScore % 10 <= lastDigit || (lastDigit == 1 && newScore >= 10))
                 {
                     var all = scores.Skip(scores.Count() - (input.Count() + 1)).JoinArrayToString();
                     if (all.Contains(input))
                     {
-                        Console.WriteLine(scores.LongCount() - input.Count() - (all.IndexOf(input) == 0 ? 1 : 0));
+                        Console.WriteLine(scores.LongCount() - 7 + (all.IndexOf(input)));
                         break;
                     }
                 }
