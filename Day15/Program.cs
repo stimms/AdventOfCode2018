@@ -24,10 +24,11 @@ namespace Day15
             Print2DArray(map);
 
             var round = 0;
-            while (true)
+            var incomplete = true;
+            while (incomplete)
             {
-
-
+                
+                
                 var movedList = new List<(int, int)>();
                 for (int x = 0; x < map.GetLength(0); x++)
                 {
@@ -77,21 +78,22 @@ namespace Day15
                                 ExecuteCombat(map, updatedx, updatedy, neighbors);
                             }
 
-
+                            
 
                         }
                     }
                 }
-                BringOutYourDead(map);
+
+                Console.WriteLine("Round: " + round);
                 Print2DArray(map);
                 if (AreNoOpponents(map))
                 {
-                    Console.WriteLine("Rounds: " + round);
                     Console.WriteLine(round * AllHPs(map));
-                    break;
+                    incomplete = false;
+
                 }
                 round++;
-
+                
             }
             Console.WriteLine("done.");
             Console.ReadLine();
@@ -113,7 +115,7 @@ namespace Day15
                     }
                 }
             }
-            return elves == 0 || goblins == 0;
+            return elves == 0 || goblins ==0;
         }
         static int AllHPs(ISquare[,] map)
         {
@@ -122,7 +124,7 @@ namespace Day15
             {
                 for (int y = 0; y < map.GetLength(1); y++)
                 {
-                    if (map[x, y] is Unit)
+                    if(map[x,y] is Unit)
                     {
                         total += ((Unit)map[x, y]).HP;
                     }
@@ -134,22 +136,23 @@ namespace Day15
         private static void ExecuteCombat(ISquare[,] map, int x, int y, IEnumerable<Unit> neighbors)
         {
             neighbors.OrderBy(u => u.HP).First().HP -= 3;
-
-        }
-        private static void BringOutYourDead(ISquare[,] map)
-        {
-            for (int x = 0; x < map.GetLength(0); x++)
+            if (neighbors.OrderBy(u => u.HP).First().HP <= 0)
             {
-                for (int y = 0; y < map.GetLength(1); y++)
+                if (map[x, y - 1] is Unit && ((Unit)map[x, y - 1]).HP < 0)
                 {
-                    if (map[x, y] is Unit)
-                    {
-                        if (((Unit)map[x, y]).HP<=0)
-                        {
-                            map[x, y] = new Space();
-                        }
-                            
-                    }
+                    map[x, y - 1] = new Space();
+                }
+                if (map[x - 1, y] is Unit && ((Unit)map[x - 1, y]).HP < 0)
+                {
+                    map[x - 1, y] = new Space();
+                }
+                if (map[x + 1, y] is Unit && ((Unit)map[x + 1, y]).HP < 0)
+                {
+                    map[x + 1, y] = new Space();
+                }
+                if (map[x, y + 1] is Unit && ((Unit)map[x, y + 1]).HP < 0)
+                {
+                    map[x, y + 1] = new Space();
                 }
             }
         }
