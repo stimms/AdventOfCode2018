@@ -10,6 +10,17 @@ namespace Day15
     {
         static void Main(string[] args)
         {
+            for(int i = 1; i < 50; i++)
+            {
+                Run();
+            }
+            
+            Console.WriteLine("done.");
+            Console.ReadLine();
+        }
+
+        static bool Run()
+        {
             var lines = File.ReadAllLines("input.txt");
             var map = new ISquare[lines.First().Length, lines.Count()];
 
@@ -30,10 +41,13 @@ namespace Day15
 
 
                 var movedList = new List<(int, int)>();
+                var elfCount = GetAllUnitsOfType(map, UnitType.Elf);
                 for (int y = 0; y < map.GetLength(1); y++)
                 {
                     for (int x = 0; x < map.GetLength(0); x++)
                     {
+                        if (GetAllUnitsOfType(map, UnitType.Elf) != elfCount)
+                            return false;
                         var updatedx = x;
                         var updatedy = y;
                         if (map[x, y] is Unit && !movedList.Any(l => l.Item1 == x && l.Item2 == y))
@@ -112,7 +126,7 @@ namespace Day15
                             neighbors = (new List<ISquare>() { map[updatedx, updatedy - 1], map[updatedx - 1, updatedy], map[updatedx + 1, updatedy], map[updatedx, updatedy + 1] }).OfType<Unit>().Where(z => z.UnitType != current.UnitType);
                             if (neighbors.Any())
                             {
-                                ExecuteCombat(map, updatedx, updatedy, neighbors);
+                                ExecuteCombat(map, updatedx, updatedy, neighbors, current.UnitType == UnitType.Elf);
                             }
 
 
@@ -133,8 +147,7 @@ namespace Day15
                 round++;
 
             }
-            Console.WriteLine("done.");
-            Console.ReadLine();
+            return true;
         }
         static List<(int, int)> GetAllUnitsOfType(ISquare[,] map, UnitType type)
         {
@@ -186,9 +199,10 @@ namespace Day15
             return total;
         }
 
-        private static void ExecuteCombat(ISquare[,] map, int x, int y, IEnumerable<Unit> neighbors)
+        static int elfPower = 4;
+        private static void ExecuteCombat(ISquare[,] map, int x, int y, IEnumerable<Unit> neighbors, bool isElf)
         {
-            neighbors.OrderBy(u => u.HP).First().HP -= 3;
+            neighbors.OrderBy(u => u.HP).First().HP -= isElf? elfPower: 3;
 
             if (map[x, y - 1] is Unit && ((Unit)map[x, y - 1]).HP < 0)
             {
