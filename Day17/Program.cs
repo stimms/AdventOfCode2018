@@ -67,8 +67,6 @@ namespace Day17
                         }
                         if (y + 1 < cells.GetLength(1) && cells[x, y] == CellContents.FallingWater && cells[x, y + 1] == CellContents.Dirt)
                             cells[x, y + 1] = CellContents.FallingWater;
-                        //if (y + 1 < cells.GetLength(1) && cells[x, y] == CellContents.FallingWater && cells[x, y + 1] == CellContents.Water)
-                        //    cells[x, y + 1] = CellContents.Water;
                         if (y > 0 && cells[x, y] == CellContents.Clay && cells[x, y - 1] == CellContents.FallingWater)
                         {
                             cells[x, y - 1] = CellContents.Water;
@@ -139,7 +137,6 @@ namespace Day17
                 for (int y = 0; y < cells.GetLength(1); y++)
                 {
                     for (int x = 0; x < cells.GetLength(0); x++)
-
                     {
                         if (cells[x, y] == CellContents.Water)
                         {
@@ -168,11 +165,20 @@ namespace Day17
                     }
                 }
                 //Print2DArray(cells, walls.Select(x => x.x).Union(floors.Select(x => x.x2)).Min(), 0);
-
-
+            }
+            for (int y = 0; y < cells.GetLength(1); y++)
+            {
+                for (int x = 1; x < cells.GetLength(0) - 1; x++)
+                {
+                    if (cells[x - 1, y] == CellContents.FallingWater && cells[x, y] == CellContents.Water && cells[x + 1, y] == CellContents.FallingWater)
+                    {
+                        cells[x, y] = CellContents.FallingWater;
+                    }
+                }
             }
             File2DArray(cells, 0, 0);
-            Console.WriteLine(GetNumberFiled(cells,0, floors.Select(x => x.depth).Union(walls.Select(x => x.y1)).Min()));
+            Console.WriteLine(GetNumberFiled(cells, 0, floors.Select(x => x.depth).Union(walls.Select(x => x.y1)).Min()));
+            Console.WriteLine(GetNumberFiledStanding(cells, 0, floors.Select(x => x.depth).Union(walls.Select(x => x.y1)).Min()));
         }
 
 
@@ -228,6 +234,20 @@ namespace Day17
                 }
                 Console.WriteLine();
             }
+        }
+
+        private static int GetNumberFiledStanding(CellContents[,] cells, int startX = 0, int startY = 0)
+        {
+            var counter = 0;
+            for (int i = startX; i < cells.GetLength(0); i++)
+                for (int j = startY; j < cells.GetLength(1); j++)
+                {
+                    if (cells[i, j] == CellContents.Water)
+                    {
+                        counter++;
+                    }
+                }
+            return counter;
         }
 
         private static int GetNumberFiled(CellContents[,] cells, int startX = 0, int startY = 0)
