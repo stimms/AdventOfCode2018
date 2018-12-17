@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace Day17
 {
@@ -36,19 +37,22 @@ namespace Day17
                     floors.Add((Int32.Parse(lineBits[3]), Int32.Parse(lineBits[4]), Int32.Parse(lineBits[1])));
                 }
             }
-            var cells = new CellContents[walls.Select(x => x.x).Union(floors.Select(x => x.x2)).Max() + 1, floors.Select(x => x.depth).Union(walls.Select(x => x.y2)).Max() + 1];
+            var minWall = walls.Select(x => x.x).Union(floors.Select(x => x.x2)).Min();
+            var cells = new CellContents[walls.Select(x => x.x).Union(floors.Select(x => x.x2)).Max() - minWall + 2, floors.Select(x => x.depth).Union(walls.Select(x => x.y2)).Max() + 1];
+
             foreach (var wall in walls)
             {
                 for (int i = wall.y1; i <= wall.y2; i++)
-                    cells[wall.x, i] = CellContents.Clay;
+                    cells[wall.x - minWall + 1, i] = CellContents.Clay;
             }
             foreach (var floor in floors)
             {
-                for (int i = floor.x1; i <= floor.x2; i++)
+                for (int i = floor.x1 - minWall + 1; i <= floor.x2 - minWall; i++)
                     cells[i, floor.depth] = CellContents.Clay;
             }
             var numberFilled = 0;
-            cells[500, 0] = CellContents.FallingWater;
+            cells[500 - walls.Select(x => x.x).Union(floors.Select(x => x.x2)).Min() + 1, 0] = CellContents.FallingWater;
+
             while (numberFilled != GetNumberFiled(cells))
             {
 
@@ -100,7 +104,7 @@ namespace Day17
                     }
                 }
 
-                
+
                 bool shouldConvert = false;
                 for (int y = 0; y < cells.GetLength(1); y++)
                 {
@@ -108,11 +112,13 @@ namespace Day17
                     for (int x = 0; x < cells.GetLength(0); x++)
 
                     {
-                        
+                        if (cells[x, y] == CellContents.Dirt)
+                            toConvert.Clear();
+
                         if (cells[x, y] == CellContents.FallingWater)
                         {
 
-                            if (x > 0 && y + 1 < cells.GetLength(1) && (cells[x - 1, y] == CellContents.Clay || toConvert.Count>0) && (cells[x, y + 1] == CellContents.Water))
+                            if (x > 0 && y + 1 < cells.GetLength(1) && (cells[x - 1, y] == CellContents.Clay || toConvert.Count > 0) && (cells[x, y + 1] == CellContents.Water))
                             {
                                 toConvert.Add((x, y));
                                 if (cells[x + 1, y] == CellContents.Clay)
@@ -128,7 +134,7 @@ namespace Day17
                         }
                     }
                 }
-                
+
 
                 for (int y = 0; y < cells.GetLength(1); y++)
                 {
@@ -161,12 +167,43 @@ namespace Day17
                         }
                     }
                 }
-                Print2DArray(cells, 480, 0);
-                Console.WriteLine();
+                //Print2DArray(cells, walls.Select(x => x.x).Union(floors.Select(x => x.x2)).Min(), 0);
+
+
             }
-            Console.WriteLine(GetNumberFiled(cells));
+            File2DArray(cells, 0, 0);
+            Console.WriteLine(GetNumberFiled(cells,0, floors.Select(x => x.depth).Union(walls.Select(x => x.y1)).Min()));
         }
 
+
+        public static void File2DArray(CellContents[,] toPrint, int startx = 0, int starty = 0)
+        {
+            var lines = new List<string>();
+            for (int i = starty; i < toPrint.GetLength(1); i++)
+            {
+                var sb = new StringBuilder();
+                for (int j = startx; j < toPrint.GetLength(0); j++)
+                {
+                    switch (toPrint[j, i])
+                    {
+                        case CellContents.Clay:
+                            sb.Append("#");
+                            break;
+                        case CellContents.Dirt:
+                            sb.Append(".");
+                            break;
+                        case CellContents.Water:
+                            sb.Append("~");
+                            break;
+                        case CellContents.FallingWater:
+                            sb.Append("|");
+                            break;
+                    }
+                }
+                lines.Add(sb.ToString());
+            }
+            File.WriteAllLines("output.txt", lines);
+        }
         public static void Print2DArray(CellContents[,] toPrint, int startx = 0, int starty = 0)
         {
             for (int i = starty; i < toPrint.GetLength(1); i++)
@@ -193,11 +230,11 @@ namespace Day17
             }
         }
 
-        private static int GetNumberFiled(CellContents[,] cells)
+        private static int GetNumberFiled(CellContents[,] cells, int startX = 0, int startY = 0)
         {
             var counter = 0;
-            for (int i = 0; i < cells.GetLength(0); i++)
-                for (int j = 0; j < cells.GetLength(1); j++)
+            for (int i = startX; i < cells.GetLength(0); i++)
+                for (int j = startY; j < cells.GetLength(1); j++)
                 {
                     if (cells[i, j] == CellContents.Water || cells[i, j] == CellContents.FallingWater)
                     {
