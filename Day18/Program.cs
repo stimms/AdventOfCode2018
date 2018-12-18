@@ -25,8 +25,10 @@ namespace Day18
                 for (int x = 0; x < lines.First().Length; x++)
                     areas[x, y] = lines[x][y];
 
+            var hashes = new Dictionary<int, int>(); //hash -> loop counter
             Print2DArray(areas);
-            for (int i = 0; i < 1_000_000_000; i++)
+            const int itterations = 1_000_000_000;
+            for (int i = 0; i < itterations; i++)
             {
                 var workingCopy = areas.Clone() as char[,];
                 for (int y = 0; y < lines.Count(); y++)
@@ -36,10 +38,35 @@ namespace Day18
                     }
                 areas = workingCopy.Clone() as char[,];
                 //Print2DArray(areas);
-                if (i % 10_000 ==0)
-                    Console.Write(".");
+                int hash = GetHash(areas);
+                if (hashes.ContainsKey(hash))
+                {
+                    Console.WriteLine("Cycle detected");
+                    Console.WriteLine("Previously seen at cycle " + hashes[hash] + " loop length is " + (i - hashes[hash]));
+                    var prefix = hashes[hash];
+                    var length = i - prefix;
+                    i = (((itterations - prefix) / length) * length)+ prefix;
+                    Console.WriteLine(">>>> to " + i);
+                }
+                else
+                {
+                    hashes.Add(hash, i);
+                }
             }
             Console.WriteLine(GetValue(areas));
+        }
+
+        private static int GetHash(char[,] array)
+        {
+            int hash = 17;
+            for (int i = 0; i < array.GetLength(0); i++)
+            {
+                for (int j = 0; j < array.GetLength(1); j++)
+                {
+                    hash = hash * 31 + array[i, j];
+                }
+            }
+            return hash;
         }
 
         private static int GetValue(char[,] areas)
