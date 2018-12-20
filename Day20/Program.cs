@@ -20,9 +20,7 @@ namespace Day20
 
         private static void Part1()
         {
-            var line = File.ReadAllLines("input1.txt").First();
-
-            line = "^ENWWW$";
+            var line = "^ENWWW$";
             var node = GetNodes(line);
             Assert.Equal(5, node.Single().MaxChildLength);
 
@@ -121,8 +119,7 @@ namespace Day20
 
         private static void Part2()
         {
-            var line = File.ReadAllLines("input1.txt").First();
-            line = "N";
+            var line = "N";
             Assert.Equal(0, GetRoomsIn(line));
 
             line = "N(E|W)";
